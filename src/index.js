@@ -88,14 +88,15 @@ app.post("/team", (req, res) => {
 
 app.put("/team", (req, res) => {  
   Team.update(req.body, {    
-    where: {      
-      id: req.params.id    
-    }  
-  })    .then(updateTeam => res.json(updateTeam))    .catch(err => res.json({
-    Error: err
-  }));
+      where: {      
+        id: req.params.id    
+      }  
+    })    
+    .then(updateTeam => res.json(updateTeam))    
+    .catch(err => res.json({
+      Error: err
+    }));
 });
-
 
 app.delete("/team/:id", (req, res) => {
   Team.destroy({
