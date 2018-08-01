@@ -10,8 +10,7 @@ const Sequelize = require("sequelize");
 const sequelize = new Sequelize(
   "dizpuuiq_llcoolk",
   "dizpuuiq_llcoolk",
-  "llcoolk!",
-  {
+  "llcoolk!", {
     host: "dionimercado.com",
     dialect: "mysql",
     port: 3306,
@@ -28,49 +27,91 @@ sequelize
     console.error("Unable to connect to the database:", err);
   });
 
-const Team = sequelize.define("Teams", {
-  teamName: {
-    type: Sequelize.STRING
-  }
-});
-
-const Player = sequelize.define("Players", {
+const Player = sequelize.define("player", {
   firstName: {
     type: Sequelize.STRING
   },
   lastName: {
     type: Sequelize.STRING
-  },
-  age: {
-    type: Sequelize.INTEGER
+  }
+});
+
+const Team = sequelize.define("team", {
+  teamName: {
+    type: Sequelize.STRING
   }
 });
 
 Player.belongsTo(Team);
 Team.hasMany(Player);
 
-Team.sync({
-  force: true
-}).then(() => {
-  return Team.create({
-    teamName: "Angels"
-  });
-});
+// Team.sync({
+//   force: true
+// }).then(() => {
+//   return Team.create({
+//     teamName: "Angels"
+//   });
+// });
 
-// Players.sync({
+// Player.sync({
 //   force: true
 // }).then(() => {
 //   return Player.create({
 //     firstName: 'Justin',
 //     lastName: 'Kim',
-//     age: 21
 //   });
 // });
 
+app.get("/team", (req, res) => {
+  Team.findAll({}).then(findTeam => res.json(findTeam));
+});
+
+app.get("/team/:id", (req, res) => {
+  Team.findOne({
+    where: {
+      id: req.params.id
+    }
+  }).then(findTeam => res.json(findTeam));
+});
+
+app.post("/team", (req, res) => {
+  const newTeam = {
+    teamName: req.body.teamName
+  };
+
+  Team.create(newTeam)
+    .then(postTeam => res.json(postTeam))
+    .catch(err => re.jon({
+      Error: err
+    }));
+});
+
+app.put("/team", (req, res) => {  
+  Team.update(req.body, {    
+    where: {      
+      id: req.params.id    
+    }  
+  })    .then(updateTeam => res.json(updateTeam))    .catch(err => res.json({
+    Error: err
+  }));
+});
+
+
+app.delete("/team/:id", (req, res) => {
+  Team.destroy({
+      where: {
+        id: req.params.id
+      }
+    })
+    .then(deleteTeam => res.json(deleteTeam))
+    .catch(err => res.json({
+      Error: err
+    }));
+});
+
+
 app.get("/player", (req, res) => {
-  Player.findAll({}).then(players => {
-    res.json(players);
-  });
+  Player.findAll({}).then(players => res.json(players));
 });
 
 app.get("/player/:id", (req, res) => {
@@ -78,19 +119,20 @@ app.get("/player/:id", (req, res) => {
     where: {
       id: req.params.id
     }
-  }).then(player => {
-    res.json(player);
-  });
+  }).then(data =>
+    res.json(data));
 });
 
 app.post("/player", (req, res) => {
-  const player = {
+
+  const newPlayer = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    age: req.body.age
+    teamId: req.body.teamId,
   };
-  Player.create(player)
-    .then((player = res.json(player)))
+
+  Player.create(newPlayer)
+    .then(player => res.json(player))
     .catch(err =>
       res.json({
         Error: err
@@ -99,25 +141,28 @@ app.post("/player", (req, res) => {
 });
 
 app.put("/player/:id", (req, res) => {
-  const { firstName, lastName, age } = req.body;
+  const {
+    firstName,
+    lastName,
+    teamId
+  } = req.body;
 
-  const player = {};
-
+  const updatedPlayer = {};
   if (firstName) {
-    player.firstName = firstName;
+    updatedPlayer.firstName = firstName;
   }
   if (lastName) {
-    player.lastName = lastName;
+    updatedPlayer.lastName = lastName;
   }
-  if (age) {
-    player.age = age;
+  if (teamId) {
+    updatedPlayer.teamId = teamId;
   }
 
-  Player.update(player, {
-    where: {
-      id: req.params.id
-    }
-  })
+  Player.update(updatedPlayer, {
+      where: {
+        id: req.params.id
+      }
+    })
     .then(player => res.json(player))
     .catch(err =>
       res.json({
@@ -128,16 +173,18 @@ app.put("/player/:id", (req, res) => {
 
 app.delete("/player/:id", (req, res) => {
   Player.destroy({
-    where: {
-      id: req.params.id
-    }
-  })
-    .then(players => res.json(players))
+      where: {
+        id: req.params.id
+      }
+    })
+    .then(player => res.json(player))
     .catch(err =>
       res.json({
         Error: err
       })
     );
 });
+
+
 
 app.listen(5000, () => console.log("Server running at http://localhost:5000"));
